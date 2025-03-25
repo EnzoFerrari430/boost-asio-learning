@@ -1,8 +1,8 @@
 ﻿#include <iostream>
 #include <boost/asio.hpp>
 
-#include "Server.h"
-#include "Session.h"
+#include "CServer.h"
+#include "CSession.h"
 
 /*
 
@@ -18,7 +18,7 @@ int main()
     try {
         boost::asio::io_context ioc;
 
-        Server s(ioc, 10086);
+        CServer s(ioc, 10086);
         ioc.run();
     }
     catch (std::exception& e)

@@ -10,22 +10,28 @@ Server::Server(boost::asio::io_context& ioc, short port)
     start_accept();
 }
 
+void Server::ClearSession(const std::string& uuid)
+{
+    _sessions.erase(uuid);
+}
+
 // 启动一个描述符 用于监听链接
 void Server::start_accept()
 {
-    Session* new_session = new Session(_ioc);
+    std::shared_ptr<Session> new_session = std::make_shared<Session>(_ioc, this);
     _acceptor.async_accept(new_session->Socket(), std::bind(&Server::handle_accept, this, new_session, std::placeholders::_1));
 }
 
-void Server::handle_accept(Session* new_session, const boost::system::error_code& error)
+void Server::handle_accept(std::shared_ptr<Session> new_session, const boost::system::error_code& error)
 {
     if (!error)
     {
         new_session->Start();
+        _sessions.insert(std::make_pair(new_session->GetUuid(), new_session));
     }
     else
     {
-        delete new_session;
+        //delete new_session;
     }
     start_accept();
 }

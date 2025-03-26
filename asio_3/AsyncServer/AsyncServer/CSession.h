@@ -5,6 +5,7 @@
 #include <boost/asio.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include "MsgNode.h"
 using boost::asio::ip::tcp;
 
 class CServer;
@@ -26,27 +27,18 @@ std::enable_shared_from_this 是 C++ 标准库中的一个模板类，它在 <me
 class CSession : public std::enable_shared_from_this<CSession>
 {
 public:
-    CSession(boost::asio::io_context& ioc, CServer* server): _socket(ioc), _server(server) {
-        // 每个session有一个唯一id
-        boost::uuids::uuid a_uuid = boost::uuids::random_generator()();
-        _uuid = boost::uuids::to_string(a_uuid);
-    }
+    CSession(boost::asio::io_context& ioc, CServer* server);
 
-    ~CSession()
-    {
-        std::cout << "session destruct delete this: " << this << std::endl;
-    }
+    ~CSession();
 
-    tcp::socket& Socket() { return _socket; }
-
-    // 在start函数里监听对客户端的读和写
-    void Start();
-
+    tcp::socket& GetSocket();
     std::string& GetUuid();
-
+    void Start();
     void Send(char* msg, int max_length);
-
+    void Close();
+    std::shared_ptr<CSession> SharedSelf();
 private:
+    void PrintRecvData(char* data, int length);
     // echo类型的服务器
     // 这里的回调增加一个智能指针参数 延长了内存的声明周期
     void HandleRead(const boost::system::error_code& error, std::size_t bytes_transferred, std::shared_ptr<CSession> _self_shared);
@@ -54,11 +46,10 @@ private:
 
 private:
     tcp::socket _socket;
-    enum {max_length = 1024};
-    char _data[max_length];
+    char _data[MAX_LENGTH];
     CServer* _server;
     std::string _uuid;
-
+    bool _b_close;
 
     /*
     因为全双工要有自己的发送接口，然而我们不能保证每次调用的发送接口的时候上一次的数据已经发送完，
@@ -67,5 +58,14 @@ private:
     */
     std::queue<std::shared_ptr<MsgNode>> _send_que;
     std::mutex _send_lock;
+
+    /*
+    _recv_msg_node用来存储接受的消息体信息
+    _recv_head_node用来存储接收的头部信息
+    _b_head_parse表示是否处理完头部信息
+    */
+    std::shared_ptr<MsgNode> _recv_msg_node;
+    bool _b_head_parse;
+    std::shared_ptr<MsgNode> _recv_head_node;
 };
 

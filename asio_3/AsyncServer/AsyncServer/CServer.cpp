@@ -19,7 +19,7 @@ void CServer::ClearSession(const std::string& uuid)
 void CServer::start_accept()
 {
     std::shared_ptr<CSession> new_session = std::make_shared<CSession>(_ioc, this);
-    _acceptor.async_accept(new_session->Socket(), std::bind(&CServer::handle_accept, this, new_session, std::placeholders::_1));
+    _acceptor.async_accept(new_session->GetSocket(), std::bind(&CServer::handle_accept, this, new_session, std::placeholders::_1));
 }
 
 void CServer::handle_accept(std::shared_ptr<CSession> new_session, const boost::system::error_code& error)

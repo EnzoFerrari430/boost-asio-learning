@@ -19,7 +19,7 @@ void CSession::Start()
 {
     memset(_data, 0, MAX_LENGTH);
     _socket.async_read_some(boost::asio::buffer(_data, MAX_LENGTH),
-        std::bind(&CSession::HandleRead, this, std::placeholders::_1, std::placeholders::_2, shared_from_this()));
+        std::bind(&CSession::HandleRead, this, std::placeholders::_1, std::placeholders::_2, SharedSelf()));
 
 }
 
@@ -36,6 +36,15 @@ std::string& CSession::GetUuid()
 void CSession::Send(char* msg, int max_length)
 {
     std::lock_guard<std::mutex> lock(_send_lock);
+
+    // 发送队列数据控制
+    int send_que_size = _send_que.size();
+    if (send_que_size > MAX_SENDQUE)
+    {
+        std::cout << "session: " << _uuid << " send que fulled, size is " << MAX_SENDQUE << std::endl;
+        return;
+    }
+
     bool pending = false;
     if (_send_que.size() > 0)
     {
@@ -48,7 +57,7 @@ void CSession::Send(char* msg, int max_length)
 
     auto& msgnode = _send_que.front();
     boost::asio::async_write(_socket, boost::asio::buffer(msgnode->_data, msgnode->_total_len),
-        std::bind(&CSession::HandleWrite, this, std::placeholders::_1, shared_from_this()));
+        std::bind(&CSession::HandleWrite, this, std::placeholders::_1, SharedSelf()));
 }
 
 void CSession::Close()
@@ -73,7 +82,7 @@ void CSession::PrintRecvData(char* data, int length) {
     std::cout << "receive raw data is : " << result << std::endl;
 }
 
-#define Test_Packet_Sticking
+//#define Test_Packet_Sticking
 // 读数据回调函数
 void CSession::HandleRead(const boost::system::error_code& error, std::size_t bytes_transferred, std::shared_ptr<CSession> _self_shared)
 {
@@ -109,6 +118,8 @@ void CSession::HandleRead(const boost::system::error_code& error, std::size_t by
                 bytes_transferred -= head_remain;
                 short data_len = 0;
                 memcpy(&data_len, _recv_head_node->_data, HEAD_LENGTH);
+                // 将网络字节序转换成本地字节序
+                data_len = boost::asio::detail::socket_ops::network_to_host_short(data_len);
                 std::cout << "data len is " << data_len << std::endl;
                 if (data_len > MAX_LENGTH)
                 {

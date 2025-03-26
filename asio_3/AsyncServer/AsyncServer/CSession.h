@@ -5,7 +5,7 @@
 #include <boost/asio.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include "MsgNode.h"
+#include "const.h"
 using boost::asio::ip::tcp;
 
 class CServer;

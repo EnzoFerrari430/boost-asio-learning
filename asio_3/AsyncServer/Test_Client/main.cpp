@@ -24,9 +24,11 @@ int main()
             for (;;) {
                 this_thread::sleep_for(std::chrono::milliseconds(2));
                 const char* request = "hello world!";
-                size_t request_length = strlen(request);
+                short request_length = strlen(request);
+                // 转为网络字节序
+                short request_length_host = boost::asio::detail::socket_ops::host_to_network_short(request_length);
                 char send_data[MAX_LENGTH] = { 0 };
-                memcpy(send_data, &request_length, 2);
+                memcpy(send_data, &request_length_host, 2);
                 memcpy(send_data + 2, request, request_length);
                 boost::asio::write(sock, boost::asio::buffer(send_data, request_length + 2));
             }
@@ -40,12 +42,14 @@ int main()
                 size_t reply_length = boost::asio::read(sock, boost::asio::buffer(reply_head, HEAD_LENGTH));
                 short msglen = 0;
                 memcpy(&msglen, reply_head, HEAD_LENGTH);
+                // 将网络字节序转换成本地字节序
+                short reply_length_local = boost::asio::detail::socket_ops::network_to_host_short(msglen);
                 char msg[MAX_LENGTH] = { 0 };
-                size_t  msg_length = boost::asio::read(sock, boost::asio::buffer(msg, msglen));
+                size_t  msg_length = boost::asio::read(sock, boost::asio::buffer(msg, reply_length_local));
 
                 std::cout << "Reply is: ";
-                std::cout.write(msg, msglen) << endl;
-                std::cout << "Reply len is " << msglen;
+                std::cout.write(msg, reply_length_local) << endl;
+                std::cout << "Reply len is " << reply_length_local;
                 std::cout << "\n";
             }
         });

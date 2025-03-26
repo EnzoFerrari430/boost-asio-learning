@@ -14,10 +14,10 @@ public:
     void ClearSession(const std::string& uuid);
 private:
     // 启动一个描述符 用于监听链接
-    void start_accept();
+    void StartAccept();
 
     // 获取监听的回调函数
-    void handle_accept(std::shared_ptr<CSession> new_session, const boost::system::error_code& error);
+    void HandleAccept(std::shared_ptr<CSession> new_session, const boost::system::error_code& error);
 
 private:
     boost::asio::io_context& _ioc;

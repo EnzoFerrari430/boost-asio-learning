@@ -266,6 +266,7 @@ void CSession::HandleRead(const boost::system::error_code& error, std::size_t by
     else
     {
         std::cout << "read error" << std::endl;
+        Close();
         _server->ClearSession(_uuid);
     }
 }

@@ -155,6 +155,7 @@ void CSession::HandleRead(const boost::system::error_code& error, std::size_t by
                 if (data_len > MAX_LENGTH)
                 {
                     std::cout << "invalid data length is " << data_len << std::endl;
+                    Close();
                     _server->ClearSession(_uuid);
                     return;
                 }
@@ -287,6 +288,7 @@ void CSession::HandleWrite(const boost::system::error_code& error, std::shared_p
     else
     {
         std::cout << "write error " << error.value() << std::endl;
+        Close();
         _server->ClearSession(_uuid);
     }
 }

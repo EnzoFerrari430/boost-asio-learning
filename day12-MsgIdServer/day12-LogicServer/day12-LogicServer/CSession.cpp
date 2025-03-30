@@ -265,7 +265,12 @@ void CSession::HandleRead(const boost::system::error_code& error, std::size_t by
                 root2["id"] = root["id"];
                 root2["data"] = return_str;
                 std::string send_str = root2.toStyledString();
-                Send(send_str, root["id"].asInt()); // TODO: 这里应该使用_recv_head_node里存储的id值
+                //Send(send_str, root["id"].asInt()); // TODO: 这里应该使用_recv_head_node里存储的id值
+                short msg_id = 0;
+                memcpy(&msg_id, _recv_head_node->_data, HEAD_ID_LEN);
+                // 将网络字节序转换成本地字节序
+                msg_id = boost::asio::detail::socket_ops::network_to_host_short(msg_id);
+                Send(send_str, msg_id);
             }
 
             //一个数据包处理完成 继续轮询处理剩余数据

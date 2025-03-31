@@ -5,6 +5,8 @@
 
 #include "const.h"
 
+class LogicSystem;
+
 /*
 tlv应用层协议 头部id + length + value
 
@@ -39,6 +41,7 @@ public:
 
 class RecvNode : public MsgNode
 {
+    friend class LogicSystem;
 public:
     RecvNode(short max_len, short msg_id);
 private:
@@ -47,6 +50,7 @@ private:
 
 class SendNode : public MsgNode
 {
+    friend class LogicSystem;
 public:
     SendNode(const char* msg, short max_len, short msg_id);
 private:

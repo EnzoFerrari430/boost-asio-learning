@@ -1,6 +1,7 @@
 ﻿#include "CSession.h"
 #include "CServer.h"
 #include "MsgNode.h"
+#include "LogicSystem.h"
 #include <iomanip>
 
 #include <json/json.h>
@@ -204,18 +205,7 @@ void CSession::HandleRead(const boost::system::error_code& error, std::size_t by
                 std::cout << "receive data is " << _recv_msg_node->_data << std::endl;
 
                 {
-                    Json::Value root;
-                    Json::Reader reader;
-                    std::string receive_data;
-                    reader.parse(std::string(_recv_msg_node->_data, _recv_msg_node->_total_len), root);
-                    std::cout << "receive msg id is " << root["id"].asInt() << " msg data is " << root["data"].asString() << std::endl;
-                    std::string return_str = "server has received msg, msg data is " + root["data"].asString();
-
-                    Json::Value root2;
-                    root2["id"] = root["id"];
-                    root2["data"] = return_str;
-                    std::string send_str = root2.toStyledString();
-                    Send(send_str, msg_id);
+                    LogicSystem::GetInstance()->PostMsgToQue(std::make_shared<LogicNode>(_self_shared, _recv_msg_node));
                 }
 
 
@@ -254,23 +244,7 @@ void CSession::HandleRead(const boost::system::error_code& error, std::size_t by
             std::cout << "receive data is " << _recv_msg_node->_data << std::endl;
 
             {
-                Json::Value root;
-                Json::Reader reader;
-                std::string receive_data;
-                reader.parse(std::string(_recv_msg_node->_data, _recv_msg_node->_total_len), root);
-                std::cout << "receive msg id is " << root["id"].asInt() << " msg data is " << root["data"].asString() << std::endl;
-                std::string return_str = "server has received msg, msg data is " + root["data"].toStyledString();
-
-                Json::Value root2;
-                root2["id"] = root["id"];
-                root2["data"] = return_str;
-                std::string send_str = root2.toStyledString();
-                //Send(send_str, root["id"].asInt()); // TODO: 这里应该使用_recv_head_node里存储的id值
-                short msg_id = 0;
-                memcpy(&msg_id, _recv_head_node->_data, HEAD_ID_LEN);
-                // 将网络字节序转换成本地字节序
-                msg_id = boost::asio::detail::socket_ops::network_to_host_short(msg_id);
-                Send(send_str, msg_id);
+                LogicSystem::GetInstance()->PostMsgToQue(std::make_shared<LogicNode>(_self_shared, _recv_msg_node));
             }
 
             //一个数据包处理完成 继续轮询处理剩余数据
@@ -315,3 +289,10 @@ void CSession::HandleWrite(const boost::system::error_code& error, std::shared_p
     }
 }
 
+
+
+///////////////////////////////////////////////////////LogicNode
+LogicNode::LogicNode(std::shared_ptr<CSession> session, std::shared_ptr<RecvNode> recvnode)
+    : _session(session), _recvnode(recvnode)
+{
+}

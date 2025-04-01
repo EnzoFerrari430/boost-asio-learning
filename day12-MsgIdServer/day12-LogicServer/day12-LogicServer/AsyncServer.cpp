@@ -4,22 +4,46 @@
 #include "CServer.h"
 #include "CSession.h"
 
-/*
+// 服务器优雅退出
+#include <csignal>
+#include <thread>
+#include <mutex>
 
-本文介绍了异步的应答服务器设计，但是这种服务器并不会在实际生产中使用，主要有两个原因:
-1   因为该服务器的发送和接收以应答的方式交互，而并不能做到应用层想随意发送的目的，也就是未做到完全的收发分离(全双工逻辑)。
-2   该服务器未处理粘包，序列化，以及逻辑和收发线程解耦等问题。
-3   该服务器存在二次析构的风险。
-这些问题我们会在接下来的文章中不断完善
-*/
+bool bstop = false;
+std::condition_variable cond_quit;
+std::mutex mutex_quit;
+
+// 处理退出信号
+void sig_handler(int sig)
+{
+    if (sig == SIGINT || sig == SIGTERM)
+    {
+        std::unique_lock<std::mutex> lock_quit(mutex_quit);
+        bstop = true;
+        cond_quit.notify_one();
+    }
+}
 
 int main()
 {
     try {
         boost::asio::io_context ioc;
+        std::thread net_work_thread([&ioc]() {
+            CServer s(ioc, 10086);
+            ioc.run(); // 在网络线程中启动io_context的事件循环
+        });
 
-        CServer s(ioc, 10086);
-        ioc.run();
+        // 注册信号，绑定处理函数
+        signal(SIGINT, sig_handler);
+        signal(SIGTERM, sig_handler);
+
+        while (!bstop)
+        {
+            std::unique_lock<std::mutex> lock_quit(mutex_quit);
+            cond_quit.wait(lock_quit);
+        }
+        ioc.stop();
+        net_work_thread.join();
     }
     catch (std::exception& e)
     {

@@ -62,7 +62,7 @@ void CSession::Send(char* msg, int max_length, short msgid)
 
     auto& msgnode = _send_que.front();
     boost::asio::async_write(_socket, boost::asio::buffer(msgnode->_data, msgnode->_total_len),
-        std::bind(&CSession::HandleWrite, this, std::placeholders::_1, SharedSelf()));
+        std::bind(static_cast<void(CSession::*)(const boost::system::error_code&, std::size_t, std::shared_ptr<CSession>)>(&CSession::HandleWrite), this, std::placeholders::_1, std::placeholders::_2, SharedSelf()));
 }
 
 void CSession::Send(std::string msg, short msgid)
@@ -89,7 +89,7 @@ void CSession::Send(std::string msg, short msgid)
 
     auto& msgnode = _send_que.front();
     boost::asio::async_write(_socket, boost::asio::buffer(msgnode->_data, msgnode->_total_len),
-        std::bind(&CSession::HandleWrite, this, std::placeholders::_1, SharedSelf()));
+        std::bind(static_cast<void(CSession::*)(const boost::system::error_code&, std::size_t, std::shared_ptr<CSession>)>(&CSession::HandleWrite), this, std::placeholders::_1, std::placeholders::_2, SharedSelf()));
 }
 
 void CSession::Close()
@@ -280,7 +280,29 @@ void CSession::HandleWrite(const boost::system::error_code& error, std::shared_p
         {
             auto& msgNode = _send_que.front();
             boost::asio::async_write(_socket, boost::asio::buffer(msgNode->_data, msgNode->_total_len),
-                std::bind(&CSession::HandleWrite, this, std::placeholders::_1, _self_shared));
+                std::bind(static_cast<void(CSession::*)(const boost::system::error_code&, std::shared_ptr<CSession>)>(&CSession::HandleWrite), this, std::placeholders::_1, _self_shared));
+        }
+    }
+    else
+    {
+        std::cout << "write error " << error.value() << std::endl;
+        Close();
+        _server->ClearSession(_uuid);
+    }
+}
+
+void CSession::HandleWrite(const boost::system::error_code& error, std::size_t bytes_transferred, std::shared_ptr<CSession> _self_shared)
+{
+    //std::cout << "The CSession(uuid: "<< _uuid <<" ) HandleWrite thread is : " << std::this_thread::get_id() << std::endl;
+    if (!error)
+    {
+        std::lock_guard<std::mutex> lock(_send_lock);
+        _send_que.pop();
+        if (!_send_que.empty())
+        {
+            auto& msgNode = _send_que.front();
+            boost::asio::async_write(_socket, boost::asio::buffer(msgNode->_data, msgNode->_total_len),
+                std::bind(static_cast<void(CSession::*)(const boost::system::error_code&, std::size_t, std::shared_ptr<CSession>)>(&CSession::HandleWrite), this, std::placeholders::_1, std::placeholders::_2, _self_shared));
         }
     }
     else

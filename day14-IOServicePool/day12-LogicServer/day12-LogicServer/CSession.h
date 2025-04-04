@@ -44,6 +44,7 @@ private:
     // 这里的回调增加一个智能指针参数 延长了内存的声明周期
     void HandleRead(const boost::system::error_code& error, std::size_t bytes_transferred, std::shared_ptr<CSession> _self_shared);
     void HandleWrite(const boost::system::error_code& error, std::shared_ptr<CSession> _self_shared);
+    void HandleWrite(const boost::system::error_code& error, std::size_t bytes_transferred, std::shared_ptr<CSession> _self_shared);
 
 private:
     tcp::socket _socket;

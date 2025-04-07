@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单网页示例</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 font-sans">
+    <!-- 导航栏 -->
+    <nav class="bg-blue-500 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="#" class="text-white text-xl font-bold">主页</a>
+            <div class="space-x-4">
+                <a href="#" class="text-white hover:text-gray-200">关于</a>
+                <a href="#" class="text-white hover:text-gray-200">服务</a>
+                <a href="#" class="text-white hover:text-gray-200">联系我们</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <main class="container mx-auto p-8">
+        <section class="text-center">
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">欢迎来到我们的网站</h1>
+            <p class="text-lg text-gray-600 mb-8">这里是一个简单的网页示例，展示了如何使用 Tailwind CSS 和 Font Awesome 构建现代 Web 应用。</p>
+            <a href="#" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">了解更多</a>
+        </section>
+
+        <section class="mt-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">我们的服务</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded shadow-md hover:shadow-lg transition-shadow">
+                    <i class="fas fa-laptop-code text-4xl text-blue-500 mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Web 开发</h3>
+                    <p class="text-gray-600">我们提供专业的 Web 开发服务，包括前端和后端开发。</p>
+                </div>
+                <div class="bg-white p-6 rounded shadow-md hover:shadow-lg transition-shadow">
+                    <i class="fas fa-mobile-alt text-4xl text-blue-500 mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">移动应用开发</h3>
+                    <p class="text-gray-600">我们专注于移动应用开发，支持 iOS 和 Android 平台。</p>
+                </div>
+                <div class="bg-white p-6 rounded shadow-md hover:shadow-lg transition-shadow">
+                    <i class="fas fa-chart-line text-4xl text-blue-500 mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">数据分析</h3>
+                    <p class="text-gray-600">我们提供数据分析服务，帮助您从数据中获取有价值的信息。</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 p-4 text-center text-white">
+        <p>&copy; 2025 简单网页示例。保留所有权利。</p>
+    </footer>
+</body>
+
+</html>
+    

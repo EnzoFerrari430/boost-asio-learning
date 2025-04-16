@@ -41,7 +41,12 @@ void AsioIOServicePool::Stop()
 {
     for (auto& work : _works)
     {
-        // executor_work_guard 对象被销毁，关联的io_context停止运行。
+        // 仅仅work.reset并不能让iocontext从run状态中退出。
+        // 当iocontext已经绑定了读或者写监听事件后，还需要手动reset释放
+
+        // 先停止服务
+        work->reset();
+        // 再回收work
         work.reset();
     }
 
